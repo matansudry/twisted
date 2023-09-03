@@ -4,17 +4,18 @@ from torch.utils.data import DataLoader
 import tqdm
 import time
 import wandb
+import torch
 
 #files
 from state2action_flow.s2a_utils.metrics import score_function_mse_binary, score_function_ce
 from state2action_flow.s2a_utils.types import Scores
-from state2action_flow.s2a_train.train_utils import *
+from state2action_flow.s2a_train.train_utils import get_zeroed_metrics_dict, get_metrics, TrainParams
 from state2action_flow.s2a_utils.train_logger import TrainLogger
 from state2action_flow.s2a_utils.types import Metrics
 from metrics.s2a_metric import autoregressive_stochastic_topology_metric
 
-def autoregressive_stochastic_train(model: nn.Module, train_loader: DataLoader, eval_loader: DataLoader, train_params: TrainParams,\
-     logger: TrainLogger) -> Metrics:
+def autoregressive_stochastic_train(model: nn.Module, train_loader: DataLoader, eval_loader: DataLoader,\
+    train_params, logger: TrainLogger) -> Metrics:
     """
     Training procedure. Change each part if needed (optimizer, loss, etc.)
     :param model:
@@ -37,8 +38,6 @@ def autoregressive_stochastic_train(model: nn.Module, train_loader: DataLoader, 
                                                 step_size=train_params.lr_step_size,
                                                 gamma=train_params.lr_gamma)
     #loss_func = nn.MSELoss()
-    loss_func_pos = nn.SmoothL1Loss()
-    loss_func_action = nn.CrossEntropyLoss()
     for epoch in tqdm.tqdm(range(train_params.num_epochs)):
         model.train()
         t = time.time()
@@ -69,10 +68,6 @@ def autoregressive_stochastic_train(model: nn.Module, train_loader: DataLoader, 
                 y_hat = y_hat.unsqueeze(dim=1)
                 y_pos_hat= torch.cat([height_hat, x_hat, y_hat], dim=1)
 
-                #loss_pos = loss_func_pos(y_pos_hat, y_pos)
-                #loss_action = loss_func_action(y_action_hat, y_action)
-                #loss = train_params.action_ratio * loss_action + train_params.pos_ratio * loss_pos
-
                 # Optimization step
                 optimizer.zero_grad()
                 loss.backward()
@@ -83,7 +78,6 @@ def autoregressive_stochastic_train(model: nn.Module, train_loader: DataLoader, 
                 metrics['total_norm'] += nn.utils.clip_grad_norm_(model.parameters(), train_params.grad_clip)
                 metrics['count_norm'] += 1
 
-                # NOTE! This function compute scores correctly only for one hot encoding representation of the logits
                 batch_score_pos = score_function_mse_binary(y_pos_hat, y_pos.data, train_params.thershold)
                 metrics['train_score_pos'] += batch_score_pos
                 batch_score_action = score_function_ce(y_action_hat , y_action.data) #, train_params.thershold)
@@ -99,22 +93,28 @@ def autoregressive_stochastic_train(model: nn.Module, train_loader: DataLoader, 
         metrics['train_loss_pos'] = metrics['train_loss_pos'] / train_loader.sampler.num_samples
         metrics['train_loss_action'] = metrics['train_loss_action'] / train_loader.sampler.num_samples
 
-        metrics['train_score_action'] = metrics['train_score_action'] / train_loader.sampler.num_samples #/ y.shape[1]
+        metrics['train_score_action'] = metrics['train_score_action'] / train_loader.sampler.num_samples
         metrics['train_score_pos'] = metrics['train_score_pos'] / train_loader.sampler.num_samples
 
         norm = metrics['total_norm'] / metrics['count_norm']
 
         model.train(False)
-        metrics['eval_score_pos'], metrics['eval_score_action'],metrics['eval_loss_pos'], metrics['eval_loss_action'] =\
+        metrics['eval_score_pos'], metrics['eval_score_action'], metrics['eval_loss_pos'], metrics['eval_loss_action'] =\
              evaluate_stochastic(model, eval_loader, train_params)
         if epoch%100 == 0 and epoch>train_params.start_topology_evalutaion:
             metrics["eval_score"]  = autoregressive_stochastic_topology_metric(model, eval_loader)
         model.train(True)
 
         epoch_time = time.time() - t
-        logger.write_epoch_statistics(epoch=epoch, epoch_time=epoch_time, norm=norm, train_loss_pos=metrics['train_loss_pos'],\
-                                      train_loss_action=metrics['train_loss_action'], train_score=metrics['train_score_action'],\
-                                      eval_score=metrics["eval_score"])
+        logger.write_epoch_statistics(
+            epoch=epoch, 
+            epoch_time=epoch_time, 
+            norm=norm, 
+            train_loss_pos=metrics['train_loss_pos'],
+            train_loss_action=metrics['train_loss_action'], 
+            train_score=metrics['train_score_action'],\
+            eval_score=metrics["eval_score"]
+            )
 
         scalars = {'Accuracy/Train/action': metrics['train_score_action'],
                     'Accuracy/Train/pos': metrics['train_score_pos'],

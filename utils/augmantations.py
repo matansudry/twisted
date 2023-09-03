@@ -3,9 +3,13 @@ sys.path.append(".")
 
 import numpy as np
 import pytorch3d.transforms as pyt
+import copy
+import torch
+from dm_control import mujoco
+import tqdm
 
-from utils.general_utils import *
-from state2state_flow.s2s_utils.dataset_utils import *
+from utils.general_utils import set_physics_state, get_position_from_physics,\
+    convert_action_from_index_to_one_hot_vector
 from utils.topology.state_2_topology import state2topology
 
 def rotate_state(qpos, angle, principal_axe="yaw"):
@@ -33,7 +37,7 @@ def rotate_action(x, y, angle):
     return new_x, new_y
 
 def add_augmantations(dataset, topology):
-    env_path = RopeAssetsPaths[21]
+    env_path = "assets/rope_v3_21_links.xml"
     physics = mujoco.Physics.from_xml_path(env_path)
     final_dataset = copy.copy(dataset)
     final_topology = copy.copy(topology)   
@@ -100,7 +104,7 @@ def reverse_action(index, num_of_links=21):
     return new_index
 
 def add_augmantations_reverse(dataset, topology):
-    env_path = RopeAssetsPaths[21]
+    env_path = "assets/rope_v3_21_links.xml"
     physics = mujoco.Physics.from_xml_path(env_path)
     final_dataset = copy.copy(dataset)
     final_topology = copy.copy(topology)   

@@ -15,14 +15,11 @@ import matplotlib.pyplot as plt
 import pickle
 from dm_control import mujoco
 from multiprocessing import Process
-from time import sleep
 from easydict import EasyDict as edict
 
 
 #files
 from utils.topology.state_2_topology import state2topology
-from state2state_flow.s2s_utils.metrics import conf_mat_score_funcation_topology #score_function_mse, score_funcation_topology,
-#from utils.enums import RopeAssetsPaths
 
 def main_argparse():
     parser = argparse.ArgumentParser()
@@ -240,7 +237,7 @@ def execute_action_in_curve_with_mujoco_controller(physics, action, num_of_links
     num_of_links = get_number_of_links(physics=physics, qpos=current_state)
     
     if env_path == "":
-        env_path = RopeAssetsPaths[num_of_links]
+        env_path = "assets/rope_v3_21_links.xml"
     
     physics = mujoco.Physics.from_xml_path(env_path)
     set_physics_state(physics, current_state)
@@ -554,50 +551,6 @@ def uncertainty_score_function_mse_z_only(out, batch_size=128):
         temp_uncertainty = torch.std(tensor_predictions[:,:,2],axis=0)
         uncertainty.append(temp_uncertainty.sum().item())
     return uncertainty
-
-@torch.no_grad()
-def viz_model_output_ensemble(models, dataloader, val_topology_list, output_path ,save=False,\
-     batch_size=128, binary=True):
-    acc = []
-    uncertainty = []
-    cnt = {}
-    init_index=0
-    for _ , (x, y_pos,_) in enumerate(tqdm.tqdm(dataloader)):
-        #y_hats = []
-        y_hats_pos = []
-        y_hats_qpos = []
-        if isinstance(x,list):
-            x = torch.stack(x)
-            x = x.permute(1,0).float()
-
-        if isinstance(y_pos,list):
-            y_pos = torch.stack(y_pos)
-            y_pos = y_pos.permute(1,0).float()
-
-        if torch.cuda.is_available():
-            x = x.cuda()
-            #y_pos = y_pos.cuda()
-
-        for model in models:
-            y_pos_hat, y_qpos_hat = model(x)
-            y_hats_pos.append(y_pos_hat.cpu())
-            y_hats_qpos.append(y_qpos_hat.cpu())
-        x.cpu()
-        acc = acc + conf_mat_score_funcation_topology(out=y_hats_pos, trues=val_topology_list,\
-             init_index=init_index)
-        init_index += x.shape[0]
-        uncertainty = uncertainty + uncertainty_score_function_mse(y_hats_pos, x.shape[0])
-
-    acc_np = torch.tensor(acc)
-    acc_np = acc_np.view(-1)
-    acc_np = acc_np.tolist()
-    uncertainty_np = torch.tensor(uncertainty)
-    uncertainty_np = uncertainty_np.view(-1)
-    uncertainty_np = uncertainty_np.tolist()
-    if binary:
-        conf_mat_binary(acc_np, uncertainty_np)
-    else:
-        conf_mat(acc_np, uncertainty_np)
         
 def conf_mat(acc, uncertainty):
     acc_steps = 1
@@ -891,64 +844,13 @@ def edict2dict(edict_obj):
 
   return dict_obj 
 
-######################################archive##########################################################3
-"""
-def get_start_state_from_x(state):
-    state = state.view(-1,6)
-    state = state[:,:3]
-    return state   
+def convert_action_from_index_to_one_hot_vector(action, num_of_links):
+    if torch.is_tensor(action):
+        action = action.tolist()
+    one_hot = np.zeros(num_of_links+3)
+    one_hot[int(action[0])] = 1
+    one_hot[num_of_links] = action[1]
+    one_hot[num_of_links+1] = action[2]
+    one_hot[num_of_links+2] = action[3]
 
-def get_ordered_state(physics):
-    points = ["G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10",\
-        "G11", "G12", "G13", "G14", "G15", "G16", "G17", "G18", "G19", "G20"]
-    new_state = physics.named.data.geom_xpos[points]
-    return new_state
-
-def viz_model_output(model, dataloader, output_path, save=False):
-    model.train(False)
-    for _ , (x, y) in enumerate(dataloader):
-        if isinstance(x,list):
-            x = torch.stack(x)
-            x = x.permute(1,0).float()
-
-        if isinstance(y,list):
-            y = torch.stack(y)
-            y = y.permute(1,0).float()
-
-        if torch.cuda.is_available():
-            x = x.cuda()
-            y = y.cuda()
-
-        y_hat = model(x)
-        break
-    cnt = 0 
-    for index in range(y_hat.shape[0]):
-        if(cnt > 200):
-            break
-        fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
-        plot_rope(ax2, y_hat[index], gt=False)
-        plot_rope(ax2, y[index], gt=True)
-        x_state = get_start_state_from_x(x[index])
-        plot_rope(ax1, x_state, gt=False)
-        ax1.set_xlim([-1.5, 1.5])
-        ax1.set_ylim([-1.5, 1.5])
-        ax2.set_xlim([-1.5, 1.5])
-        ax2.set_ylim([-1.5, 1.5])
-        ax1.set_title("start")
-        error = score_function_mse(out=y_hat[index], trues=y.data[index])
-        prediction_title = "prediction error = " + str(error)
-        ax2.set_title(prediction_title)
-        fig.savefig(output_path+"_old_train_"+str(index)+"_with_error.png")
-        cnt+=1
-        plt.close(fig)
-    model.train(True)  
-
-# new methods
-
-def get_observation(physics) -> np.ndarray:
-    new_state = get_ordered_state(physics)
-    state = torch.tensor(new_state)
-    state = state.view(-1)
-    return state.cpu().detach().numpy()
-
-"""
+    return one_hot

@@ -107,34 +107,19 @@ def select_random_states_from_file(file_path:str, k:int)-> list:
         states = raw_states
     return states
 
-def select_states(all_states_path:str, k:int, h_values_path:str, use_unseen:bool) -> list:
+def select_states(all_states_path:str, k:int, use_unseen:bool) -> list:
     """
     select states
 
     Args:
         all_states_path (str): all_states_path
         k (int): k
-        h_values_path (str): h_values_path
         use_unseen (bool): use_unseen
 
     Returns:
         list: states_after_k
     """
     raw_states = load_pickle(all_states_path)
-    if h_values_path is not None and h_values_path != "":
-        temp_states = {}
-        for state in raw_states:
-            temp_states[convert_topology_to_str(state[0].points)] = (state[0], 0)
-        h_values = load_pickle(h_values_path)
-        for key in h_values.keys():
-            if key not in temp_states.keys():
-                continue
-            try:
-                temp_states[key] = (temp_states[key][0], h_values[key])
-            except:
-                temp_states[key] = (temp_states[key][0], 0)
-        raw_states = [temp_states[key] for key in temp_states.keys()]
-        raw_states.sort(key=lambda a: a[1], reverse=True)
 
     if not use_unseen:
         new = []

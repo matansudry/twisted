@@ -11,12 +11,11 @@ import tqdm
 
 #files
 from utils.general_utils import get_number_of_links, set_seed, get_position_from_physics,\
-    execute_action_in_curve_with_mujoco_controller, set_physics_state
+    execute_action_in_curve_with_mujoco_controller, set_physics_state, get_random_action
 from utils.topology.state_2_topology import state2topology
 from system_flow.system_utils.config_methods import load_config
-from utils.enums import RopeAssetsPaths
-from data_collection.data_collection_utils import reset_physics_to_init_state, get_random_action,\
-    save_trejctory, convert_topology_to_number_of_crosses
+from data_collection.data_collection_utils import reset_physics_to_init_state, save_trejctory,\
+    convert_topology_to_number_of_crosses
 
 def trejctory_collection_automation(args:dict):
     """

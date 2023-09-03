@@ -2,8 +2,8 @@ import numpy as np
 import torch
 
 from system_flow.low_level_class.base_low_level import LowLevelPlanner
-from state2action_flow.s2a_models.stochastic_network import stochastic_s2a_netowrk
-from utils.general_utils import *
+from state2action_flow.s2a_models.autoregressive_stochastic_network import autoregressive_stochastic_s2a_netowrk
+from utils.general_utils import set_physics_state, get_position_from_physics, convert_topology_state_to_input_vector
 
 class S2APlanner(LowLevelPlanner):
     def __init__(self, cfg, config_length):
@@ -28,8 +28,12 @@ class S2APlanner(LowLevelPlanner):
                 "x": np.array(x),
                 "y": np.array(y),
             }
-            self.s2a_model = stochastic_s2a_netowrk(input_size=self.s2a_input_size , output_size=self.s2a_output_size,\
-                output_ranges=output_ranges, dropout=0)
+            self.s2a_model = autoregressive_stochastic_s2a_netowrk(
+                input_size=self.s2a_input_size,
+                output_size=self.s2a_output_size,
+                output_ranges=output_ranges,
+                dropout=0
+                )
     
     def load_state2action_nn(self):
         init = torch.load(self.s2a_path)
@@ -47,7 +51,7 @@ class S2APlanner(LowLevelPlanner):
         pos = get_position_from_physics(playground_physics)
         pos = np.reshape(pos, -1)
         topology_vector = convert_topology_state_to_input_vector(target_topology_state.points)
-        x = np.zeros(self.s2a_input_size) #24 is action
+        x = np.zeros(self.s2a_input_size)
         x[:47] = configuration[:47]
         x[47:113] = pos[:]
         x[113:] = topology_vector[:]

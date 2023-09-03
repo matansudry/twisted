@@ -1,16 +1,20 @@
 import sys
 sys.path.append(".")
 
-from system_flow.high_level_class.high_level import HighLevelPlanner
-from system_flow.high_level_class.random_high_level import RandomHighLevelPlanner
-from system_flow.system_utils.config_methods import load_config
-from utils.general_utils import *
-import torch
-torch.backends.cudnn.benchmark = True
-from metrics.evalution import select_states
+import numpy as np
 import pytorch_lightning
 import time
 import yaml
+import torch
+torch.backends.cudnn.benchmark = True
+
+from system_flow.high_level_class.high_level import HighLevelPlanner
+from system_flow.high_level_class.random_high_level import RandomHighLevelPlanner
+
+from system_flow.system_utils.config_methods import load_config
+from utils.general_utils import convert_topology_to_str, edict2dict, argparse_create, run_with_limited_time
+from metrics.evalution import select_states
+
 
 HIGH_LEVEL_CATALOG = {
     "random": RandomHighLevelPlanner,
@@ -49,10 +53,7 @@ def main():
     args = argparse_create()
 
     args.cfg = "system_flow/config/without_uncertainty_with_higher_crosses.yml"
-    #"system_flow/config/random_only.yml"
-    #"system_flow/config/inverse_only.yml"
-    #"system_flow/config/without_uncertainty_with_higher_crosses.yml"
-    #"system_flow/config/with_uncertainty_with_higher_crosses.yml" 
+
     
     cfg = load_config(path=args.cfg)
 
@@ -63,8 +64,7 @@ def main():
     cfg = update_config_init(cfg)
 
     states = select_states(all_states_path=cfg["GENERAL_PARAMS"]["states_file_path"],\
-                    k=cfg["GENERAL_PARAMS"]["k"], h_values_path=cfg["GENERAL_PARAMS"]["h_value_for_states_selection"],\
-                    use_unseen=cfg["GENERAL_PARAMS"]["unseen_states"])
+                    k=cfg["GENERAL_PARAMS"]["k"], use_unseen=cfg["GENERAL_PARAMS"]["unseen_states"])
 
     if cfg["GENERAL_PARAMS"]["use_states"][0] != 0 or cfg["GENERAL_PARAMS"]["use_states"][1] != -1:
         states = states[cfg["GENERAL_PARAMS"]["use_states"][0]:cfg["GENERAL_PARAMS"]["use_states"][1]]
@@ -96,10 +96,7 @@ def main():
                 st = time.time()
                 system = HIGH_LEVEL_CATALOG[cfg["HIGH_LEVEL"]["type"]](args,cfg)
                 system.set_new_goal(state[0])
-                if len(cfg['LOW_LEVEL']['STATE2STATE_PARMS'].paths) > 1:
-                    answer = run_with_limited_time_new(system.run, (), {}, running_time)
-                else:
-                    answer = run_with_limited_time(system.run, (), {}, running_time)
+                answer = run_with_limited_time(system.run, (), {}, running_time)
                 et = time.time()
                 answer_matrix[new_seed][state_index] += 1 if answer else 0
                 cnt_matrix[new_seed][state_index] += 1
@@ -130,4 +127,3 @@ def main():
 if __name__ == '__main__':
     torch.multiprocessing.set_start_method('spawn')
     main()
-    #os.environ["CUDA_VISIBLE_DEVICES"]= "1" #str(args.gpus_to_use)
