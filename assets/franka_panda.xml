@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<mujoco model="mujoco_panda_model">
+
+    <include file="simple_scene.xml"/>
+    <include file="panda/assets.xml"/>
+    <compiler meshdir=""/>
+
+    <option cone="elliptic">
+        <flag gravity="enable"/>
+    </option>
+
+    <worldbody>
+        <include file="panda/arm_with_gripper.xml"/>
+    </worldbody>
+
+    <worldbody>
+        <body name="B10" pos="0 -0.5 0.05">
+            <freejoint/>
+            <composite type="rope" count="21 1 1" spacing="0.04" offset="0 0 2">
+                <joint kind="main" damping="0.005"/>
+                <geom  type="capsule" size=".01 .015" rgba=".8 .2 .1 1"/>
+            </composite>
+        </body>
+    </worldbody>
+
+
+    <actuator>
+        <include file="panda/actuators/torque_with_gripper.xml"/>
+    </actuator>
+
+    <sensor>
+        <include file="panda/sensors/ft_sensor.xml" />
+    </sensor>
+
+</mujoco>

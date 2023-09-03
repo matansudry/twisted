@@ -1,0 +1,67 @@
+GENERAL_PARAMS:
+    h_value_for_states_selection: "" # need to add
+    SAVE:
+        show_image: False
+        get_video: False
+        frame_rate: 60
+    output_path: "" # need to add
+    states_file_path: "" # need to add
+    k: 10
+    use_states: [0,-1]
+    unseen_states: False
+
+HIGH_LEVEL:
+    h_path: "" # need to add
+    type: "" # need to add
+    max_depth: 3 #max depth of the high level planner
+    initial_state: []
+    goal_state:  [["Reide1", 0, 1, 1]]
+    SELECT_UNUSED_STATE: False
+    SELECT_HIGHER_CROSS_STATES: False
+    env_path: "" # need to add
+
+LOW_LEVEL:
+    NAME: RandomPlanner
+    max_tries: 12
+    batch_size: 12
+    random_search_threshold: 0.05
+    STATE2STATE_PARMS:
+        paths: [] # need to add
+        input_size: 53
+        output_size: 19
+        num_of_links: 21
+        dropout: 0
+        return_with_init_position: True
+        ensemble_prediction: 0
+        random_search_steps: 100
+
+    Select_Samples:
+        Sort_Actions:
+            enable: False
+            sort_configuration_uncertainty: False
+            sort_configuration_uncertainty_reverse: True
+
+    Calculate_Uncertainty:
+        ensemble: False
+        prediction: False
+        topology: False
+
+    RANDOM_ACTION:
+        low_index: 0
+        high_index: 20
+        low_height: 0.001
+        high_height: 0.07
+        low_end_location: -0.5
+        high_end_location: 0.5
+
+    STATE2ACTION_PARMS:
+        output_ranges:
+            height: [0.0001,0.07]
+            x: [-0.5,0.5]
+            y: [-0.5,0.5]
+        load: True
+        path: "" # need to add
+        input_size: 257
+        output_size: 27
+
+GRAPH:

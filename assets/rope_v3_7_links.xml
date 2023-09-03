@@ -1,0 +1,46 @@
+<mujoco model="rope">
+    <!--  Copyright © 2018, Roboti LLC
+
+          This file is licensed under the MuJoCo Resource License (the "License").
+          You may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+            https://www.roboti.us/resourcelicense.txt
+
+            joint='J0_0'
+    -->
+    
+    <include file="scene_v2.xml"/>
+
+    <option timestep="0.002" jacobian="dense"/>
+
+    <size nconmax="100" njmax="300" nstack="50000"/>
+
+    <worldbody>
+        <body name="B3" pos="0 0.00 0.00">
+            <freejoint/>
+            <composite type="rope" count="7 1 1" spacing="0.04" offset="0 0 2"> <!--spacing="0.04"-->
+                <joint kind="main" damping="0.005"/>
+                <geom  type="capsule" size=".01 .015" rgba=".8 .2 .1 1"/>
+            </composite>
+        </body>
+        <body name="hand" mocap="true" pos="-0.4 -0.5 0.01">
+            <geom type="capsule" size=".0001 .0001 .0001" rgba="0 .9 0 .5" contype="2"/>
+        </body>
+        <!--<body name="hand2" mocap="true" pos="0.1 -0.5 0.01">
+            <geom type="box" size=".01 .01 .01" rgba="0 .9 0 .5" contype="2"/>
+        </body>-->
+    </worldbody>
+	<!--<<actuator>
+		<position joint='J0_0' name="actu_0_0" gear="1" ctrllimited="true" ctrlrange="-3.14 3.14" kp="1"/>
+        <position joint='J1_0' name="actu_0_1" gear="1" ctrllimited="true" ctrlrange="-3.14 3.14" kp="1"/>
+		<position joint='J0_20' name="actu_20_0" gear="1" ctrllimited="true" ctrlrange="-3.14 3.14" kp="1"/>
+        <position joint='J1_20' name="actu2_20_1" gear="1" ctrllimited="true" ctrlrange="-3.14 3.14" kp="1"/>
+	</actuator> -->
+    <equality>
+        <weld body1="hand" body2="B0" solimp="0.9 0.95 0.001" solref="0.02 1"></weld>
+    </equality>
+    <!--<equality>
+        <weld body1="hand2" body2="B15" solimp="0.9 0.95 0.001" solref="0.02 1"></weld>
+    </equality>-->
+</mujoco>

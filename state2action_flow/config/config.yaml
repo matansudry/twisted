@@ -1,0 +1,50 @@
+defaults:
+  - hydra/job_logging: disabled
+hydra:
+  output_subdir: null
+  run:
+    dir: ""
+main:
+  experiment_name_prefix: ""
+  seed: 0
+  num_workers: 96
+  parallel: false
+  gpus_to_use: 0
+  trains: False
+  load_netowrk: True
+  model_path: ""
+  output_path: ""
+  with_qpos: true
+  train_min_cross: 2
+  train_max_cross: 8
+  test_min_cross: 2
+  test_max_cross: 8
+  num_of_links: 21
+  return_with_init_position: true
+  online_dataloader: True
+  save_dataset: False
+  paths:
+    train: [] #need to add
+    validation: [] #need to add
+    online_train: ""
+    logs: ""
+train:
+  num_epochs: 601
+  grad_clip: 0.02
+  dropout: 0.0
+  num_hid: 20
+  batch_size: 8192
+  save_model: true
+  input_size: 131
+  output_size: 47
+  thershold: 0.0001
+  pos_ratio: 10
+  action_ratio: 1
+  start_topology_evalutaion: 39
+  stochastic: True
+  train_flow: autoregressive
+  lr:
+    lr_value: 0.00005
+    lr_decay: 60
+    lr_gamma: 0.8
+    lr_step_size: 60
