@@ -63,5 +63,3 @@ LOW_LEVEL:
         path: "" # need to add
         input_size: 257
         output_size: 27
-
-GRAPH:

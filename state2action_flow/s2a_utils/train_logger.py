@@ -8,11 +8,10 @@ import logging
 
 from torch import nn
 from typing import Dict
-from state2state_flow.s2s_utils import main_utils
+from state2action_flow.s2a_utils.main_utils import main_utils
 from datetime import datetime
 from torch.optim import Optimizer
-from state2state_flow.s2s_utils.types import PathT, InputSample
-#from torch.utils.tensorboard import SummaryWriter
+from state2action_flow.s2a_utils.types import PathT, InputSample
 
 
 class TrainLogger:

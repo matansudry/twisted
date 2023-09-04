@@ -15,7 +15,6 @@ import cv2
 from utils.topology import BFS, representation, reverse_BFS
 from system_flow.low_level_class.random_planner import RandomPlanner
 from system_flow.low_level_class.s2a_planner import S2APlanner
-from system_flow.low_level_class.rl_planner import RLPlanner
 from system_flow.graph.graph_manager import GraphManager
 from utils.general_utils import calculate_number_of_crosses_from_topology_state,\
     convert_topology_to_str, load_pickle, get_current_primitive_state, physics_reset,\

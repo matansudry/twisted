@@ -202,17 +202,15 @@ def evaluate_stochastic(model: nn.Module, dataloader: DataLoader, train_params: 
         x_hat = x_hat.unsqueeze(dim=1)
         y_hat = y_hat.unsqueeze(dim=1)
         y_pos_hat= torch.cat([height_hat, x_hat, y_hat], dim=1)
-        #y_pos_hat= torch.cat([y_pos_hat,y_hat],dim=1)
         y_action = y[:,:21]
         y_pos = y[:,21:]
-        #y_action_hat, height_hat, x_hat, y_hat = model._output_to_sample(y_action_hat, y_pos_hat, deterministic=False)
         score_pos += score_function_mse_binary(y_pos_hat , y_pos.data, train_params.thershold)
-        score_action += score_function_ce(y_action_hat , y_action.data).item() #, train_params.thershold)
+        score_action += score_function_ce(y_action_hat , y_action.data).item()
         total_loss_pos += loss_pos.item() *y_pos.shape[1]
         total_loss_action += loss_action.item() 
     
-    score_pos = score_pos / len(dataloader.dataset) #/ y.shape[1]
-    score_action = score_action / len(dataloader.dataset) #/ y.shape[1]
+    score_pos = score_pos / len(dataloader.dataset)
+    score_action = score_action / len(dataloader.dataset)
     total_loss_pos = total_loss_pos / len(dataloader.dataset)
     total_loss_action = total_loss_action / len(dataloader.dataset)
 

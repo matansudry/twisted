@@ -94,23 +94,3 @@ def conf_mat_score_funcation_topology(out , trues,init_index):
     for index in range(len(topology)):
         sum_list.append(comperae_two_high_level_states(topology[index], trues[index+init_index]))
     return sum_list
-
-##################################archive##################################################
-
-"""
-def score_funcation_topology(out , trues):
-    topology = []
-    output = []
-    prediction = out[0]
-
-    for i in range(prediction.shape[0]):
-        state = prediction[i]
-        temp_topology = state2topology(state)
-        topology.append(temp_topology)#[0].points)
-    for index in range(len(trues)):
-        trues[index] = [i for i in trues[index] if i]
-    for index in range(len(topology)):
-        both_topology_are_equal = comperae_two_high_level_states(topology[index], trues[index])
-        output.append(both_topology_are_equal)
-    return output
-"""

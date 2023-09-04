@@ -29,15 +29,7 @@ class autoregressive_stochastic_s2a_netowrk(nn.Module):
         self.output_y_min = torch.tensor(self.output_y_min).to(self.device)
         self.output_y_max = torch.tensor(self.output_y_max).to(self.device)
 
-        #self.network_output_size = self.mixture_count * (1 + 2 * self.output_size)
-        tanh_slack = 1.1
-
-        #defining the distribution
-        #self._mu_linear_coefficient = tanh_slack * 0.5 * (self.output_max - self.output_min).view(1, self.output_size)
-        #self._mu_bias = tanh_slack * 0.5 * (self.output_max + self.output_min).view(1, self.output_size)
-
         #network architacture
-        #self.layer1 = nn.Linear(self.input_size, 512)
         self.input_action_layer = nn.Linear(self.input_size, 512) #index select
         self.input_x_layer = nn.Linear(self.input_size+21+1, 512) # x select
         self.input_y_layer = nn.Linear(self.input_size+21+1+1, 512) # y select
@@ -192,8 +184,7 @@ class autoregressive_stochastic_s2a_netowrk(nn.Module):
         action_dis, height_dis, x_dis, y_dis = self._output_to_dist(action=actions, params=params)
         if not isinstance(targets, Tensor):
             print("gt is not tensor")
-        #action_loss = self.action_loss(action_dis, targets[:,:21])
-        action_loss = -action_dis.log_prob(torch.argmax(targets[:,:21], dim=1)) #(action_dis, targets[:,:21])
+        action_loss = -action_dis.log_prob(torch.argmax(targets[:,:21], dim=1))
         height_loss = -height_dis.log_prob(targets[:,21])
         x_loss = -x_dis.log_prob(targets[:,22])
         y_loss = -y_dis.log_prob(targets[:,23])
